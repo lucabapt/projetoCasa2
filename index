@@ -1,0 +1,88 @@
+//OLED display com Sensor DHT11
+
+#include <Wire.h>
+#include <U8g2lib.h> // Inclui a biblioteca U8g2 para controlar o display OLED
+#include <DHT.h> // Inclui a biblioteca DHT para leitura do sensor de temperatura e umidade
+
+#define SCREEN_WIDTH 128 // Largura do display OLED
+#define SCREEN_HEIGHT 64 // Altura do display OLED
+#define SCREEN_ADDRESS 0x3C // Endereço I2C do display OLED
+
+#define DHTPIN 33 // Pino ao qual o sensor DHT11 está conectado
+#define DHTTYPE DHT11 // Tipo do sensor DHT
+
+#define leitura 10 // Número de leituras para calcular a média da temperatura e umidade
+int temperatura[leitura]; // Array para armazenar as leituras de temperatura
+int umidade[leitura]; // Array para armazenar as leituras de umidade
+
+// Inicializa o objeto do display OLED e do sensor DHT
+U8G2_SSD1306_128X64_NONAME_F_SW_I2C u8g2(U8G2_R0, /* clock=*/SCL, /* data=*/SDA, /* reset=*/U8X8_PIN_NONE);
+DHT dht(DHTPIN, DHTTYPE);
+
+void setup() {
+  Serial.begin(115200); // Inicializa a comunicação serial
+  u8g2.begin(); // Inicializa o display OLED
+  dht.begin(); // Inicializa o sensor DHT
+}
+
+void loop() {  
+int somaTemperatura = 0; // Variável para armazenar a soma das leituras de temperatura
+int somaUmidade = 0; // Variável para armazenar a soma das leituras de umidade
+  
+  // Realiza várias leituras de temperatura e umidade e armazena em arrays
+  for (int i = 0; i < leitura; i++) {
+    temperatura[i] = dht.readTemperature();
+    umidade[i] = dht.readHumidity();
+  }
+ // Calcula a soma das leituras de temperatura e umidade 
+ for (int i = 0; i < leitura; i++) {    
+ somaTemperatura += temperatura[i];    
+ somaUmidade += umidade[i];  } 
+  
+ // Limpa o buffer do display OLED  
+  u8g2.clearBuffer();
+  
+ 
+u8g2.drawFrame(3, 5, 60, 37); // 1-posicionamento horizontal do quadrado 2- posicionamento vertical do quadrado 3-largura do quadrado 4 - altura do quadrado 
+u8g2.setCursor(6, 25); //1-posicionamento horizontal da frase 2- posicionamento
+vertical da frase
+u8g2.print(mediaTemperatura);
+u8g2.print("ºC");  
+  
+u8g2.drawFrame(3, 40,60,20 );
+u8g2.setFont(u8g2_font_ncenB08_tr);  
+u8g2.setCursor(8, 51);
+u8g2.print(mediaUmidade);
+u8g2.print(" %");
+  
+  
+u8g2.drawFrame(63,5,50,28);
+u8g2.setFont(u8g2_font_ncenB08_tr); // Define a fonte
+u8g2.setCursor(70,18);  
+u8g2.print(" LED ");
+  
+  
+//u8g2.drawFrame(63,30,50,28);
+u8g2.setFont(u8g2_font_ncenB10_tr); // Define a fonte
+ u8g2.setCursor(68,30);  
+  u8g2.print(" OFF ");
+   
+   u8g2.drawFrame(62, 30, 50,30);
+u8g2.setFont(u8g2_font_ncenB08_tr); // Define a fonte
+  u8g2.setCursor(68, 45);  
+ u8g2.print("PORTA ");
+
+u8g2.setFont(u8g2_font_ncenB08_tr); // Define a fonte
+  u8g2.setCursor(63, 54);  
+  u8g2.print(" CLOSED ");
+  
+ // Envia o buffer para o display OLED  
+ u8g2.sendBuffer();
+  // Exibe as informações no monitor serial para fins de depuração  
+ Serial.println(String(mediaTemperatura) + "°C");
+ Serial.println(String(mediaUmidade) + "%");
+  // Aguarda 5 segundos antes de fazer a próxima leitura  
+ delay(5000);
+
+}
+  
